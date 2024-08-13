@@ -3,29 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Great Forums</title>
+    <title>Register - Great Forums</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <header>
-        <h1>Great Forums - Login</h1>
+        <h1>Great Forums - Register</h1>
     </header>
     <main>
         {{if .Message}}
 <p class="message">{{.Message}}</p>
 {{end}}
-        <form action="/login" method="POST">
+        <form action="/register" method="POST">
             <div>
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
             </div>
             <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div>
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">Login</button>
+            <button type="submit">Register</button>
         </form>
-        <p>Don't have an account? <a href="/register">Register here</a></p>
+        <p>Already have an account? <a href="/login">Login here</a></p>
     </main>
     <footer>
         <p>&copy; 2023 Great Forums. All rights reserved.</p>
