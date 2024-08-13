@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Great Forums - Home</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Great Forums</h1>
+    </header>
+
+    <div class="container">
+        <main>
+            <h2>Recent Posts</h2>
+            {{range .RecentPosts}}
+            <div class="post">
+                <h3>{{.Title}}</h3>
+                <p>{{.Content}}</p>
+                <small>Posted by {{.Author}} on {{.FormattedCreatedAt}}</small>
+            </div>
+            {{end}}
+        </main>
+
+        <aside>
+            <h2>Categories</h2>
+            {{range .Categories}}
+            <div class="category">
+                <a href="/category/{{.ID}}">{{.Name}}</a>
+            </div>
+            {{end}}
+        </aside>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Great Forums. All rights reserved.</p>
+    </footer>
+</body>
+</html>
