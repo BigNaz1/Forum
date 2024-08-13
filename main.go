@@ -1,14 +1,28 @@
 package main
 
 import (
+	"GreatForums"
 	"fmt"
 	"log"
 	"net/http"
 )
 
 func main() {
+	// Initialize database
+	err := GreatForums.InitDB("./forum.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer GreatForums.DB.Close()
+
+	// Create tables
+	err = GreatForums.CreateTables()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Set up routes
-	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/", GreatForums.HomeHandler)
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/logout", logoutHandler)
@@ -18,10 +32,6 @@ func main() {
 	// Start the server
 	fmt.Println("Server is running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to the Forum!")
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {

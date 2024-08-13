@@ -1,4 +1,4 @@
-module forum
+module GreatForums
 
 go 1.22.6
 
