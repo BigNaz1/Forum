@@ -57,8 +57,8 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// Start the server
-	fmt.Println("Server is running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	fmt.Println("Server is running on http://localhost:8000")
+	log.Fatal(http.ListenAndServe(":8000", mux))
 }
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
