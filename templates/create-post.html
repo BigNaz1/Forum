@@ -26,18 +26,18 @@
         <main role="main">
             <h1><i class="fas fa-pen"></i> Create New Post</h1>
 
-            <form action="/create-post" method="post" class="create-post-form">
+            <form action="/create-post" method="post" class="create-post-form" id="createPostForm">
                 <div class="form-group">
                     <label for="title"><i class="fas fa-heading"></i> Title:</label>
                     <input type="text" id="title" name="title" required placeholder="Enter your post title">
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fas fa-tags"></i> Categories:</label>
-                    <div class="categories-checkbox-group">
-                        {{range .Categories}}
+                    <label><i class="fas fa-tags"></i> Categories (select at least one):</label>
+                    <div class="categories-checkbox-group" id="categoriesGroup">
+                        {{range $index, $category := .Categories}}
                             <label class="category-checkbox">
-                                <input type="checkbox" name="categories" value="{{.ID}}">
+                                <input type="checkbox" name="categories" value="{{.ID}}" data-group="categories" {{if eq $index 0}}required{{end}}>
                                 {{.Name}}
                             </label>
                         {{end}}
@@ -70,5 +70,43 @@
     <footer>
         <p>&copy; 2024 Reboot Forums. All rights reserved.</p>
     </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('createPostForm');
+        var categoriesGroup = document.getElementById('categoriesGroup');
+
+        form.addEventListener('submit', function(event) {
+            var checkboxes = categoriesGroup.querySelectorAll('input[type="checkbox"]');
+            var checked = false;
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    checked = true;
+                    break;
+                }
+            }
+            if (!checked) {
+                event.preventDefault();
+                alert('Please select at least one category.');
+            }
+        });
+
+        categoriesGroup.addEventListener('change', function(event) {
+            if (event.target.type === 'checkbox') {
+                var checkboxes = categoriesGroup.querySelectorAll('input[type="checkbox"]');
+                var anyChecked = false;
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].checked) {
+                        anyChecked = true;
+                        break;
+                    }
+                }
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].required = !anyChecked;
+                }
+            }
+        });
+    });
+    </script>
 </body>
 </html>
