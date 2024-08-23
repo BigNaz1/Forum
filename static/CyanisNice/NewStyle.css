@@ -7,11 +7,12 @@
     --header-color: #2b3f5b;
     --footer-color: #2b3f5b;
     --hover-color: #5bc0be;
-    --accent-color: #ff6b6b;  /* New accent color for highlights or important elements */
-    --light-gray: #e0e0e0;    /* For borders, dividers, etc. */
-    --dark-gray: #4a4a4a;     /* For secondary text */
-    --success-color: #4caf50; /* For success messages or indicators */
-    --error-color: #f44336;   /* For error messages or indicators */
+    --accent-color: #ff6b6b;
+    --light-gray: #e0e0e0;
+    --dark-gray: #4a4a4a;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --meta-color: #607d8b;
 }
 
 body {
@@ -145,9 +146,21 @@ aside {
 
 .post-meta {
     font-size: 0.9rem;
-    color: #666;
+    color: var(--meta-color);
     display: flex;
     gap: 15px;
+}
+
+.post-meta .post-author,
+.post-meta .post-date {
+    color: var(--meta-color);
+    font-weight: 500;
+}
+
+.post-meta .post-author i,
+.post-meta .post-date i {
+    color: var(--meta-color);
+    margin-right: 5px;
 }
 
 .read-more {
