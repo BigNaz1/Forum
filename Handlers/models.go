@@ -2,6 +2,12 @@ package RebootForums
 
 import "time"
 
+const (
+    MaxTitleLength    = 150
+    MaxPostLength     = 3000
+    MaxCommentLength  = 600
+)
+
 // Post represents a forum post
 type Post struct {
     ID        int
@@ -61,3 +67,4 @@ func GetAllCategories() ([]Category, error) {
     }
     return categories, nil
 }
+

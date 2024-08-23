@@ -16,7 +16,7 @@ func CreatePostFormHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		handleCreatePost(w, r)
 	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		Error404Handler(w, r)
 	}
 }
 
@@ -30,7 +30,7 @@ func displayCreatePostForm(w http.ResponseWriter, r *http.Request) {
 	categories, err := GetAllCategories()
 	if err != nil {
 		log.Printf("Error fetching categories: %v", err)
-		http.Error(w, "Error fetching categories", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
@@ -44,13 +44,18 @@ func displayCreatePostForm(w http.ResponseWriter, r *http.Request) {
 		LoggedIn:   true,
 	}
 
-	RenderTemplate(w, "create-post.html", data)
+	err = RenderTemplate(w, "create-post.html", data)
+	if err != nil {
+		log.Printf("Error rendering create-post template: %v", err)
+		Error500Handler(w, r)
+		return
+	}
 }
 
 func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	user, err := GetUserFromSession(r)
 	if err != nil {
-		http.Error(w, "You must be logged in to create a post", http.StatusUnauthorized)
+		Error400Handler(w, r)
 		return
 	}
 
@@ -59,7 +64,17 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	categoryIDs := r.Form["categories"]
 
 	if title == "" || content == "" {
-		http.Error(w, "Title and content are required", http.StatusBadRequest)
+		Error400Handler(w, r)
+		return
+	}
+
+	if len(title) == 0 || len(title) > MaxTitleLength {
+		Error400Handler(w, r)
+		return
+	}
+
+	if len(content) == 0 || len(content) > MaxPostLength {
+		Error400Handler(w, r)
 		return
 	}
 
@@ -67,7 +82,7 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	for _, id := range categoryIDs {
 		catID, err := strconv.Atoi(id)
 		if err != nil {
-			http.Error(w, "Invalid category ID", http.StatusBadRequest)
+			Error400Handler(w, r)
 			return
 		}
 		categories = append(categories, catID)
@@ -76,7 +91,7 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	postID, err := createPost(user.ID, title, content, categories)
 	if err != nil {
 		log.Printf("Error creating post: %v", err)
-		http.Error(w, "Error creating post", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
@@ -116,31 +131,31 @@ func createPost(userID int, title, content string, categories []int) (int, error
 func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 	postID, err := strconv.Atoi(r.URL.Path[len("/post/"):])
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		Error400Handler(w, r)
 		return
 	}
 
 	post, err := getPost(postID)
 	if err == sql.ErrNoRows {
-		http.NotFound(w, r)
+		Error404Handler(w, r)
 		return
 	} else if err != nil {
 		log.Printf("Error fetching post: %v", err)
-		http.Error(w, "Error fetching post", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
 	categories, err := getPostCategories(postID)
 	if err != nil {
 		log.Printf("Error fetching post categories: %v", err)
-		http.Error(w, "Error fetching post", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
 	comments, err := getCommentsByPostID(postID)
 	if err != nil {
 		log.Printf("Error fetching comments: %v", err)
-		comments = []Comment{} // Use empty slice instead of nil
+		comments = []Comment{}
 	}
 
 	user, err := GetUserFromSession(r)
@@ -169,7 +184,12 @@ func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 		Username:   username,
 	}
 
-	RenderTemplate(w, "view-post.html", data)
+	err = RenderTemplate(w, "view-post.html", data)
+	if err != nil {
+		log.Printf("Error rendering view-post template: %v", err)
+		Error500Handler(w, r)
+		return
+	}
 }
 
 func getPost(postID int) (Post, error) {
@@ -230,39 +250,39 @@ func getPostCategories(postID int) ([]string, error) {
 
 func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		Error404Handler(w, r)
 		return
 	}
 
 	user, err := GetUserFromSession(r)
 	if err != nil {
-		http.Error(w, "You must be logged in to like/dislike posts", http.StatusUnauthorized)
+		Error400Handler(w, r)
 		return
 	}
 
 	postID, err := strconv.Atoi(r.FormValue("post_id"))
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		Error400Handler(w, r)
 		return
 	}
 
 	isLike, err := strconv.ParseBool(r.FormValue("is_like"))
 	if err != nil {
-		http.Error(w, "Invalid like value", http.StatusBadRequest)
+		Error400Handler(w, r)
 		return
 	}
 
-	err = UpsertLike(user.ID, postID, isLike, true) // true indicates it's a post like
+	err = UpsertLike(user.ID, postID, isLike, true)
 	if err != nil {
 		log.Printf("Error upserting like: %v", err)
-		http.Error(w, "Error processing like/dislike", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
-	likes, dislikes, err := GetLikeCounts(postID, true) // true indicates it's a post
+	likes, dislikes, err := GetLikeCounts(postID, true)
 	if err != nil {
 		log.Printf("Error getting like counts: %v", err)
-		http.Error(w, "Error getting like counts", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
@@ -275,39 +295,39 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 
 func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		Error404Handler(w, r)
 		return
 	}
 
 	user, err := GetUserFromSession(r)
 	if err != nil {
-		http.Error(w, "You must be logged in to like/dislike comments", http.StatusUnauthorized)
+		Error400Handler(w, r)
 		return
 	}
 
 	commentID, err := strconv.Atoi(r.FormValue("comment_id"))
 	if err != nil {
-		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		Error400Handler(w, r)
 		return
 	}
 
 	isLike, err := strconv.ParseBool(r.FormValue("is_like"))
 	if err != nil {
-		http.Error(w, "Invalid like value", http.StatusBadRequest)
+		Error400Handler(w, r)
 		return
 	}
 
-	err = UpsertLike(user.ID, commentID, isLike, false) // false indicates it's a comment like
+	err = UpsertLike(user.ID, commentID, isLike, false)
 	if err != nil {
 		log.Printf("Error upserting comment like: %v", err)
-		http.Error(w, "Error processing like/dislike", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
-	likes, dislikes, err := GetLikeCounts(commentID, false) // false indicates it's a comment
+	likes, dislikes, err := GetLikeCounts(commentID, false)
 	if err != nil {
 		log.Printf("Error getting comment like counts: %v", err)
-		http.Error(w, "Error getting like counts", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
@@ -348,40 +368,39 @@ func updatePost(postID int, title, content string, categories []int) error {
 
 func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		Error404Handler(w, r)
 		return
 	}
 
 	user, err := GetUserFromSession(r)
 	if err != nil {
-		http.Error(w, "You must be logged in to delete a post", http.StatusUnauthorized)
+		Error400Handler(w, r)
 		return
 	}
 
 	postID, err := strconv.Atoi(r.URL.Path[len("/delete-post/"):])
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		Error400Handler(w, r)
 		return
 	}
 
-	// Check if the user is the author of the post
 	var authorID int
 	err = DB.QueryRow("SELECT user_id FROM posts WHERE id = ?", postID).Scan(&authorID)
 	if err != nil {
 		log.Printf("Error fetching post author: %v", err)
-		http.Error(w, "Error deleting post", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
 	if authorID != user.ID {
-		http.Error(w, "You are not authorized to delete this post", http.StatusForbidden)
+		Error500Handler(w, r)
 		return
 	}
 
 	err = deletePost(postID)
 	if err != nil {
 		log.Printf("Error deleting post: %v", err)
-		http.Error(w, "Error deleting post", http.StatusInternalServerError)
+		Error500Handler(w, r)
 		return
 	}
 
@@ -395,7 +414,6 @@ func deletePost(postID int) error {
 	}
 	defer tx.Rollback()
 
-	// Delete associated records
 	_, err = tx.Exec("DELETE FROM post_categories WHERE post_id = ?", postID)
 	if err != nil {
 		return err
@@ -411,7 +429,6 @@ func deletePost(postID int) error {
 		return err
 	}
 
-	// Delete the post
 	_, err = tx.Exec("DELETE FROM posts WHERE id = ?", postID)
 	if err != nil {
 		return err

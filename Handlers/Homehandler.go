@@ -38,111 +38,111 @@ func GetRecentPosts(limit int) ([]Post, error) {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-    if r.URL.Path != "/" {
-        http.NotFound(w, r)
-        return
-    }
+	if r.URL.Path != "/" {
+		Error404Handler(w, r)
+		return
+	}
 
-    user, err := GetUserFromSession(r)
-    loggedIn := err == nil && user != nil
-    var username string
-    var isGuest bool
-    var sessionDuration time.Duration
+	user, err := GetUserFromSession(r)
+	loggedIn := err == nil && user != nil
+	var username string
+	var isGuest bool
+	var sessionDuration time.Duration
 
-    if loggedIn {
-        username = user.Username
-        isGuest = false
-    } else {
-        isGuest = true
-    }
+	if loggedIn {
+		username = user.Username
+		isGuest = false
+	} else {
+		isGuest = true
+	}
 
-    cookie, _ := r.Cookie("session_token")
-    if cookie != nil {
-        sessionDuration, _ = GetSessionDuration(cookie.Value)
-    }
+	cookie, _ := r.Cookie("session_token")
+	if cookie != nil {
+		sessionDuration, _ = GetSessionDuration(cookie.Value)
+	}
 
-    categoryParam := r.URL.Query().Get("category")
-    filter := r.URL.Query().Get("filter")
+	categoryParam := r.URL.Query().Get("category")
+	filter := r.URL.Query().Get("filter")
 
-    var posts []Post
-    var fetchErr error
-    var selectedCategoryID int
+	var posts []Post
+	var fetchErr error
+	var selectedCategoryID int
 
-    if categoryParam != "" {
-        selectedCategoryID, err = strconv.Atoi(categoryParam)
-        if err != nil {
-            http.Error(w, "Invalid category ID", http.StatusBadRequest)
-            return
-        }
-        posts, fetchErr = GetPostsByCategory(selectedCategoryID)
-    } else if filter == "created" && loggedIn {
-        posts, fetchErr = GetPostsByUser(user.ID)
-    } else if filter == "liked" && loggedIn {
-        posts, fetchErr = GetLikedPostsByUser(user.ID)
-    } else {
-        posts, fetchErr = GetRecentPosts(10)
-    }
+	if categoryParam != "" {
+		selectedCategoryID, err = strconv.Atoi(categoryParam)
+		if err != nil {
+			Error400Handler(w, r)
+			return
+		}
+		posts, fetchErr = GetPostsByCategory(selectedCategoryID)
+	} else if filter == "created" && loggedIn {
+		posts, fetchErr = GetPostsByUser(user.ID)
+	} else if filter == "liked" && loggedIn {
+		posts, fetchErr = GetLikedPostsByUser(user.ID)
+	} else {
+		posts, fetchErr = GetRecentPosts(10)
+	}
 
-    if fetchErr != nil {
-        log.Printf("Failed to fetch posts: %v", fetchErr)
-        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-        return
-    }
+	if fetchErr != nil {
+		log.Printf("Failed to fetch posts: %v", fetchErr)
+		Error500Handler(w, r)
+		return
+	}
 
-    categories, err := GetAllCategories()
-    if err != nil {
-        log.Printf("Failed to fetch categories: %v", err)
-        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-        return
-    }
+	categories, err := GetAllCategories()
+	if err != nil {
+		log.Printf("Failed to fetch categories: %v", err)
+		Error500Handler(w, r)
+		return
+	}
 
-    data := struct {
-        Posts            []Post
-        Categories       []Category
-        LoggedIn         bool
-        Username         string
-        IsGuest          bool
-        SessionDuration  string
-        Filter           string
-        SelectedCategory int
-    }{
-        Posts:            posts,
-        Categories:       categories,
-        LoggedIn:         loggedIn,
-        Username:         username,
-        IsGuest:          isGuest,
-        SessionDuration:  sessionDuration.Round(time.Second).String(),
-        Filter:           filter,
-        SelectedCategory: selectedCategoryID,
-    }
+	data := struct {
+		Posts            []Post
+		Categories       []Category
+		LoggedIn         bool
+		Username         string
+		IsGuest          bool
+		SessionDuration  string
+		Filter           string
+		SelectedCategory int
+	}{
+		Posts:            posts,
+		Categories:       categories,
+		LoggedIn:         loggedIn,
+		Username:         username,
+		IsGuest:          isGuest,
+		SessionDuration:  sessionDuration.Round(time.Second).String(),
+		Filter:           filter,
+		SelectedCategory: selectedCategoryID,
+	}
 
-    templatesDir := GetTemplatesDir()
-    if templatesDir == "" {
-        log.Printf("Templates directory is not set")
-        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-        return
-    }
+	templatesDir := GetTemplatesDir()
+	if templatesDir == "" {
+		log.Printf("Templates directory is not set")
+		Error500Handler(w, r)
+		return
+	}
 
-    templatePath := filepath.Join(templatesDir, "home.html")
-    if _, err := os.Stat(templatePath); os.IsNotExist(err) {
-        log.Printf("Template file does not exist: %s", templatePath)
-        http.Error(w, "Template file not found", http.StatusInternalServerError)
-        return
-    }
+	templatePath := filepath.Join(templatesDir, "home.html")
+	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
+		log.Printf("Template file does not exist: %s", templatePath)
+		Error500Handler(w, r)
+		return
+	}
 
-    tmpl, err := template.ParseFiles(templatePath)
-    if err != nil {
-        log.Printf("Failed to parse template: %v", err)
-        http.Error(w, "Failed to parse template", http.StatusInternalServerError)
-        return
-    }
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		log.Printf("Failed to parse template: %v", err)
+		Error500Handler(w, r)
+		return
+	}
 
-    err = tmpl.Execute(w, data)
-    if err != nil {
-        log.Printf("Failed to execute template: %v", err)
-        http.Error(w, "Failed to render template", http.StatusInternalServerError)
-        return
-    }
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		log.Printf("Failed to execute template: %v", err)
+		Error500Handler(w, r)
+		return
+	}
 
-    log.Printf("Successfully rendered home page")
+	log.Printf("Successfully rendered home page")
 }

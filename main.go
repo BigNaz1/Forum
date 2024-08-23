@@ -55,7 +55,6 @@ func main() {
 	mux.HandleFunc("/register", makeHandler(RebootForums.RegisterHandler))
 	mux.HandleFunc("/login", makeHandler(RebootForums.LoginHandler))
 	mux.HandleFunc("/logout", makeHandler(RebootForums.LogoutHandler))
-
 	// Post-related routes
 	mux.HandleFunc("/create-post", makeHandler(RebootForums.CreatePostFormHandler))
 	mux.HandleFunc("/post/", makeHandler(RebootForums.ViewPostHandler))
@@ -63,6 +62,10 @@ func main() {
 	mux.HandleFunc("/like-post", makeHandler(RebootForums.LikePostHandler))
 	mux.HandleFunc("/like-comment", makeHandler(RebootForums.LikeCommentHandler))
 	mux.HandleFunc("/add-comment", makeHandler(RebootForums.AddCommentHandler))
+	// Explicit error routes
+	mux.HandleFunc("/400", RebootForums.Error400Handler)
+	mux.HandleFunc("/404", RebootForums.Error404Handler)
+	mux.HandleFunc("/500", RebootForums.Error500Handler)
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("./static"))
