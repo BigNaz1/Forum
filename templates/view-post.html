@@ -90,8 +90,8 @@
                 {{if .LoggedIn}}
                 <form action="/add-comment" method="post" class="comment-form">
                     <input type="hidden" name="post_id" value="{{.Post.ID}}">
-                    <textarea name="content" required maxlength="1000" required placeholder="Write your comment here"></textarea>
-                    <span id="commentCount">1000 characters left</span>
+                    <textarea id="commentContent" name="content" required maxlength="600" placeholder="Write your comment here"></textarea>
+                    <span id="commentCount" class="char-count">600 characters left</span>
                     <button type="submit">Submit Comment</button>
                 </form>
                 {{else}}
@@ -118,7 +118,6 @@
             const body = type === 'post'
                 ? `post_id=${id}&is_like=${isLike}`
                 : `comment_id=${id}&is_like=${isLike}`;
-        
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -154,10 +153,10 @@
         // Event listener for DOM content loaded
         document.addEventListener('DOMContentLoaded', function() {
             // Set up comment character count
-            const commentInput = document.getElementById('comment');
+            const commentInput = document.getElementById('commentContent');
             const commentCount = document.getElementById('commentCount');
             if (commentInput && commentCount) {
-                commentInput.addEventListener('input', () => updateCharCount(commentInput, commentCount, 1000));
+                commentInput.addEventListener('input', () => updateCharCount(commentInput, commentCount, 600));
             }
         
             // Set up like/dislike button listeners
@@ -172,7 +171,7 @@
         
             // Initial character count update
             if (commentInput && commentCount) {
-                updateCharCount(commentInput, commentCount, 1000);
+                updateCharCount(commentInput, commentCount, 600);
             }
         });
         </script>

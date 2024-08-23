@@ -46,7 +46,8 @@
 
                 <div class="form-group">
                     <label for="content"><i class="fas fa-paragraph"></i> Content:</label>
-                    <textarea id="content" name="content" required placeholder="Write your post content here"></textarea>
+                    <textarea id="content" name="content" required placeholder="Write your post content here" maxlength="3000"></textarea>
+                    <span id="contentCount" class="char-count">3000 characters left</span>
                 </div>
 
                 <div class="form-group">
@@ -72,41 +73,64 @@
     </footer>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var form = document.getElementById('createPostForm');
-        var categoriesGroup = document.getElementById('categoriesGroup');
-
-        form.addEventListener('submit', function(event) {
-            var checkboxes = categoriesGroup.querySelectorAll('input[type="checkbox"]');
-            var checked = false;
-            for (var i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].checked) {
-                    checked = true;
-                    break;
-                }
-            }
-            if (!checked) {
-                event.preventDefault();
-                alert('Please select at least one category.');
-            }
-        });
-
-        categoriesGroup.addEventListener('change', function(event) {
-            if (event.target.type === 'checkbox') {
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.getElementById('createPostForm');
+            var categoriesGroup = document.getElementById('categoriesGroup');
+        
+            form.addEventListener('submit', function(event) {
                 var checkboxes = categoriesGroup.querySelectorAll('input[type="checkbox"]');
-                var anyChecked = false;
+                var checked = false;
                 for (var i = 0; i < checkboxes.length; i++) {
                     if (checkboxes[i].checked) {
-                        anyChecked = true;
+                        checked = true;
                         break;
                     }
                 }
-                for (var i = 0; i < checkboxes.length; i++) {
-                    checkboxes[i].required = !anyChecked;
+                if (!checked) {
+                    event.preventDefault();
+                    alert('Please select at least one category.');
                 }
+            });
+        
+            categoriesGroup.addEventListener('change', function(event) {
+                if (event.target.type === 'checkbox') {
+                    var checkboxes = categoriesGroup.querySelectorAll('input[type="checkbox"]');
+                    var anyChecked = false;
+                    for (var i = 0; i < checkboxes.length; i++) {
+                        if (checkboxes[i].checked) {
+                            anyChecked = true;
+                            break;
+                        }
+                    }
+                    for (var i = 0; i < checkboxes.length; i++) {
+                        checkboxes[i].required = !anyChecked;
+                    }
+                }
+            });
+        
+            // New code for character limit functionality
+            function updateCharCount(inputElement, countElement, maxLength) {
+                var remainingChars = maxLength - inputElement.value.length;
+                countElement.textContent = remainingChars + ' characters left';
             }
+        
+            var titleInput = document.getElementById('title');
+            var titleCount = document.getElementById('titleCount');
+            var contentInput = document.getElementById('content');
+            var contentCount = document.getElementById('contentCount');
+        
+            titleInput.addEventListener('input', function() {
+                updateCharCount(titleInput, titleCount, 150);
+            });
+        
+            contentInput.addEventListener('input', function() {
+                updateCharCount(contentInput, contentCount, 3000);
+            });
+        
+            // Initialize character counts
+            updateCharCount(titleInput, titleCount, 150);
+            updateCharCount(contentInput, contentCount, 3000);
         });
-    });
-    </script>
+        </script>
 </body>
 </html>
