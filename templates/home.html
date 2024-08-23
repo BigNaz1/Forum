@@ -3,46 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Great Forums - Home</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>Reboot Forums - Home</title>
+    <link rel="stylesheet" href="/static/CyanisNice/NewStyle.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body>
-
-<body>
-    <header>
-        <h1>Great Forums</h1>
-    </header>
-    <header>
-        <nav>
-            <a href="/login" class="button">Login</a>
-            <a href="/register" class="button">Register</a>
-        </nav>
-    </header>
+<header>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <a href="/" class="navbar-item"><i class="fas fa-bolt"></i> Reboot Forums</a>
+        </div>
+        <div class="navbar-menu">
+            <a href="/" class="navbar-item"><i class="fas fa-home"></i> Home</a>
+            {{if .LoggedIn}}
+                <a href="/create-post" class="navbar-item"><i class="fas fa-plus-circle"></i> Create Post</a>
+                <span class="navbar-item user-info"><i class="fas fa-user"></i> {{.Username}}</span>
+                <a href="/logout" class="navbar-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            {{else}}
+                <a href="/login" class="navbar-item"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="/register" class="navbar-item"><i class="fas fa-user-plus"></i> Register</a>
+            {{end}}
+        </div>
+    </nav>
+</header>
 
     <div class="container">
         <main>
-            <h2>Recent Posts</h2>
-            {{range .RecentPosts}}
-            <div class="post">
-                <h3>{{.Title}}</h3>
-                <p>{{.Content}}</p>
-                <small>Posted by {{.Author}} on {{.FormattedCreatedAt}}</small>
-            </div>
+            {{if .LoggedIn}}
+                <div class="create-post">
+                    <a href="/create-post" class="button create-post-button"><i class="fas fa-pen"></i> Create New Post</a>
+                </div>
             {{end}}
+
+            <section class="posts">
+                <h2>
+                    {{if eq .Filter "created"}}
+                        <i class="fas fa-user-edit"></i> My Posts
+                    {{else if eq .Filter "liked"}}
+                        <i class="fas fa-heart"></i> Liked Posts
+                    {{else}}
+                        <i class="fas fa-clock"></i> Recent Posts
+                    {{end}}
+                </h2>
+                {{if .Posts}}
+                    {{range .Posts}}
+                        <article class="post">
+                            <h3><a href="/post/{{.ID}}">{{.Title}}</a></h3>
+                            <div class="post-preview">
+                                {{if gt (len .Content) 200}}
+                                    {{slice .Content 0 200}}...
+                                {{else}}
+                                    {{.Content}}
+                                {{end}}
+                            </div>
+                            <div class="post-meta">
+                                <span><i class="fas fa-user"></i> {{.Author}}</span>
+                                <span><i class="fas fa-calendar-alt"></i> {{.FormattedCreatedAt}}</span>
+                            </div>
+                            <a href="/post/{{.ID}}" class="read-more">Read more <i class="fas fa-arrow-right"></i></a>
+                        </article>
+                    {{end}}
+                {{else}}
+                    <p class="no-posts">No posts found. <i class="fas fa-frown"></i></p>
+                {{end}}
+            </section>
         </main>
 
         <aside>
-            <h2>Categories</h2>
-            {{range .Categories}}
-            <div class="category">
-                <a href="/category/{{.ID}}">{{.Name}}</a>
+            <div class="sidebar-section">
+                <h2><i class="fas fa-filter"></i> Filters</h2>
+                <ul class="filters">
+                    <li><a href="/" {{if eq .Filter ""}}class="active"{{end}}><i class="fas fa-globe"></i> All Posts</a></li>
+                    {{if .LoggedIn}}
+                        <li><a href="/?filter=created" {{if eq .Filter "created"}}class="active"{{end}}><i class="fas fa-pencil-alt"></i> My Posts</a></li>
+                        <li><a href="/?filter=liked" {{if eq .Filter "liked"}}class="active"{{end}}><i class="fas fa-heart"></i> Liked Posts</a></li>
+                    {{end}}
+                </ul>
             </div>
-            {{end}}
+
+            <div class="sidebar-section">
+                <h2><i class="fas fa-tags"></i> Categories</h2>
+                <ul class="categories">
+                    {{range .Categories}}
+                        <li class="category">
+                            <a href="/?category={{.ID}}" {{if eq $.SelectedCategory .ID}}class="active"{{end}}>{{.Name}}</a>
+                        </li>
+                    {{end}}
+                </ul>
+            </div>
         </aside>
     </div>
 
     <footer>
-        <p>&copy; 2024 Great Forums. All rights reserved.</p>
+        <p>&copy; 2024 Reboot Forums. All rights reserved.</p>
     </footer>
 </body>
 </html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reboot Forums - Create New Post</title>
+    <link rel="stylesheet" href="/static/CyanisNice/NewStyle.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <a href="/" class="navbar-item"><i class="fas fa-bolt"></i> Reboot Forums</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-item"><i class="fas fa-home"></i> Home</a>
+                <span class="navbar-item user-info"><i class="fas fa-user"></i> {{.Username}}</span>
+                <a href="/logout" class="navbar-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main">
+            <h1><i class="fas fa-pen"></i> Create New Post</h1>
+
+            <form action="/create-post" method="post" class="create-post-form">
+                <div class="form-group">
+                    <label for="title"><i class="fas fa-heading"></i> Title:</label>
+                    <input type="text" id="title" name="title" required placeholder="Enter your post title">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-tags"></i> Categories:</label>
+                    <div class="categories-checkbox-group">
+                        {{range .Categories}}
+                            <label class="category-checkbox">
+                                <input type="checkbox" name="categories" value="{{.ID}}">
+                                {{.Name}}
+                            </label>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="content"><i class="fas fa-paragraph"></i> Content:</label>
+                    <textarea id="content" name="content" required placeholder="Write your post content here"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="submit-button"><i class="fas fa-paper-plane"></i> Submit Post</button>
+                </div>
+            </form>
+
+            <section class="posting-guidelines">
+                <h2><i class="fas fa-clipboard-list"></i> Posting Guidelines</h2>
+                <ul>
+                    <li><i class="fas fa-user-friends"></i> Be respectful to other users</li>
+                    <li><i class="fas fa-bullseye"></i> Stay on topic</li>
+                    <li><i class="fas fa-ban"></i> No spam or self-promotion</li>
+                    <li><i class="fas fa-comment-alt"></i> Use appropriate language</li>
+                    <li><i class="fas fa-link"></i> Provide sources for factual claims when possible</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Reboot Forums. All rights reserved.</p>
+    </footer>
+</body>
+</html>

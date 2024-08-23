@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	GreatForums "GreatForums/Handlers"
+	RebootForums "RebootForums/Handlers"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -19,16 +19,22 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 
 func main() {
 	// Initialize database
-	err := GreatForums.InitDB("./forum.db")
+	err := RebootForums.InitDB("./forum.db")
 	if err != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}
-	defer GreatForums.DB.Close()
+	defer RebootForums.DB.Close()
 
 	// Create tables
-	err = GreatForums.CreateTables()
+	err = RebootForums.CreateTables()
 	if err != nil {
 		log.Fatal("Failed to create tables:", err)
+	}
+
+	// Add this line to ensure the updated_at column exists
+	err = RebootForums.AddUpdatedAtColumn()
+	if err != nil {
+		log.Fatal("Failed to add updated_at column:", err)
 	}
 
 	// Get the absolute path to the templates directory
@@ -38,37 +44,31 @@ func main() {
 	}
 	log.Printf("Templates directory: %s", templatesDir)
 
-	// Set the templates directory in the GreatForums package
-	GreatForums.SetTemplatesDir(templatesDir)
+	// Set the templates directory in the RebootForums package
+	RebootForums.SetTemplatesDir(templatesDir)
 
-	// Create a new ServeMux
+	// Update the routes
 	mux := http.NewServeMux()
 
 	// Set up routes
-	mux.HandleFunc("/", GreatForums.HomeHandler) // Remove makeHandler wrapper for HomeHandler
-	mux.HandleFunc("/register", makeHandler(GreatForums.RegisterHandler))
-	mux.HandleFunc("/login", makeHandler(GreatForums.LoginHandler))
-	mux.HandleFunc("/logout", makeHandler(logoutHandler))
-	mux.HandleFunc("/post", makeHandler(postHandler))
-	mux.HandleFunc("/comment", makeHandler(commentHandler))
+	mux.HandleFunc("/", RebootForums.HomeHandler)
+	mux.HandleFunc("/register", makeHandler(RebootForums.RegisterHandler))
+	mux.HandleFunc("/login", makeHandler(RebootForums.LoginHandler))
+	mux.HandleFunc("/logout", makeHandler(RebootForums.LogoutHandler))
+
+	// Post-related routes
+	mux.HandleFunc("/create-post", makeHandler(RebootForums.CreatePostFormHandler))
+	mux.HandleFunc("/post/", makeHandler(RebootForums.ViewPostHandler))
+	mux.HandleFunc("/delete-post/", makeHandler(RebootForums.DeletePostHandler))
+	mux.HandleFunc("/like-post", makeHandler(RebootForums.LikePostHandler))
+	mux.HandleFunc("/like-comment", makeHandler(RebootForums.LikeCommentHandler))
+	mux.HandleFunc("/add-comment", makeHandler(RebootForums.AddCommentHandler))
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// Start the server
-	fmt.Println("Server is running on http://localhost:8000")
-	log.Fatal(http.ListenAndServe(":8000", mux))
-}
-
-func logoutHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement user logout
-}
-
-func postHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement post creation and viewing
-}
-
-func commentHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement comment creation and viewing
+	fmt.Println("Server is running on http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

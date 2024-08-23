@@ -1,4 +1,4 @@
-package GreatForums
+package RebootForums
 
 import (
 	"sync"

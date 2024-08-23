@@ -3,32 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Great Forums</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>Reboot Forums - Login</title>
+    <link rel="stylesheet" href="/static/CyanisNice/NewStyle.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header>
-        <h1>Great Forums - Login</h1>
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <a href="/" class="navbar-item"><i class="fas fa-bolt"></i> Reboot Forums</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-item"><i class="fas fa-home"></i> Home</a>
+                <a href="/login" class="navbar-item active"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="/register" class="navbar-item"><i class="fas fa-user-plus"></i> Register</a>
+            </div>
+        </nav>
     </header>
-    <main>
-        {{if .Message}}
-<p class="message">{{.Message}}</p>
-{{end}}
-        <form action="/login" method="POST">
-            <div>
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+
+    <div class="container">
+        <main role="main" class="auth-main">
+            <div class="auth-form-container">
+                <h1><i class="fas fa-lock"></i> Login</h1>
+                
+                {{if .Message}}
+                    <div class="message {{if .Error}}error{{else}}success{{end}}">
+                        <i class="fas {{if .Error}}fa-exclamation-circle{{else}}fa-check-circle{{end}}"></i> {{.Message}}
+                    </div>
+                {{end}}
+
+                <form action="/login" method="post" class="auth-form">
+                    <div class="form-group">
+                        <label for="username"><i class="fas fa-user"></i> Username:</label>
+                        <input type="text" id="username" name="username" required placeholder="Enter your username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password"><i class="fas fa-key"></i> Password:</label>
+                        <input type="password" id="password" name="password" required placeholder="Enter your password">
+                    </div>
+                    <button type="submit" class="submit-button"><i class="fas fa-sign-in-alt"></i> Login</button>
+                </form>
+
+                <p class="auth-switch">Don't have an account? <a href="/register">Register here</a></p>
             </div>
-            <div>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">Login</button>
-        </form>
-        <p>Don't have an account? <a href="/register">Register here</a></p>
-    </main>
+        </main>
+    </div>
+
     <footer>
-        <p>&copy; 2023 Great Forums. All rights reserved.</p>
+        <p>&copy; 2024 Reboot Forums. All rights reserved.</p>
     </footer>
 </body>
 </html>

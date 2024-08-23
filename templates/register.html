@@ -3,36 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Great Forums</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>{{.Post.Title}} - Reboot Forums</title>
+    <link rel="stylesheet" href="/static/CyanisNice/NewStyle.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header>
-        <h1>Great Forums - Register</h1>
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <a href="/" class="navbar-item"><i class="fas fa-bolt"></i> Reboot Forums</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-item"><i class="fas fa-home"></i> Home</a>
+                {{if .LoggedIn}}
+                    <a href="/create-post" class="navbar-item"><i class="fas fa-plus-circle"></i> Create Post</a>
+                    <span class="navbar-item user-info"><i class="fas fa-user"></i> {{.Username}}</span>
+                    <a href="/logout" class="navbar-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                {{else}}
+                    <a href="/login" class="navbar-item"><i class="fas fa-sign-in-alt"></i> Login</a>
+                    <a href="/register" class="navbar-item"><i class="fas fa-user-plus"></i> Register</a>
+                {{end}}
+            </div>
+        </nav>
     </header>
-    <main>
-        {{if .Message}}
-<p class="message">{{.Message}}</p>
-{{end}}
-        <form action="/register" method="POST">
-            <div>
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+<body>
+    <div class="container">
+        <main role="main" class="auth-main">
+            <div class="auth-form-container">
+                <h1>Register</h1>
+                
+                {{if .Message}}
+                    <div class="message error">
+                        {{.Message}}
+                    </div>
+                {{end}}
+
+                <form action="/register" method="post" class="auth-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required placeholder="Choose a username">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required placeholder="Create a password">
+                        <div class="password-requirements">
+                            <p>Password must meet the following requirements:</p>
+                            <ul>
+                                <li id="length">At least 8 characters long</li>
+                                <li id="uppercase">At least one uppercase letter</li>
+                                <li id="lowercase">At least one lowercase letter</li>
+                                <li id="number">At least one number</li>
+                                <li id="special">At least one special character (!@#$%^&*)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-button">Register</button>
+                </form>
+
+                <p class="auth-switch">Already have an account? <a href="/login">Login here</a></p>
             </div>
-            <div>
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">Register</button>
-        </form>
-        <p>Already have an account? <a href="/login">Login here</a></p>
-    </main>
-    <footer>
-        <p>&copy; 2023 Great Forums. All rights reserved.</p>
-    </footer>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const password = document.getElementById('password');
+        const requirements = {
+            length: document.getElementById('length'),
+            uppercase: document.getElementById('uppercase'),
+            lowercase: document.getElementById('lowercase'),
+            number: document.getElementById('number'),
+            special: document.getElementById('special')
+        };
+
+        function updateRequirements() {
+            const value = password.value;
+            
+            requirements.length.classList.toggle('valid', value.length >= 8);
+            requirements.uppercase.classList.toggle('valid', /[A-Z]/.test(value));
+            requirements.lowercase.classList.toggle('valid', /[a-z]/.test(value));
+            requirements.number.classList.toggle('valid', /[0-9]/.test(value));
+            requirements.special.classList.toggle('valid', /[!@#$%^&*]/.test(value));
+        }
+
+        password.addEventListener('input', updateRequirements);
+        updateRequirements(); // Call once to set initial state
+    });
+    </script>
 </body>
+<footer>
+    <p>&copy; 2024 Reboot Forums. All rights reserved.</p>
+</footer>
 </html>

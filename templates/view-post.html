@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reboot Forums - View Post</title>
+    <link rel="stylesheet" href="/static/CyanisNice/NewStyle.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <a href="/" class="navbar-item"><i class="fas fa-bolt"></i> Reboot Forums</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/" class="navbar-item"><i class="fas fa-home"></i> Home</a>
+                {{if .LoggedIn}}
+                    <a href="/create-post" class="navbar-item"><i class="fas fa-plus-circle"></i> Create Post</a>
+                    <span class="navbar-item user-info"><i class="fas fa-user"></i> {{.Username}}</span>
+                    <a href="/logout" class="navbar-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                {{else}}
+                    <a href="/login" class="navbar-item"><i class="fas fa-sign-in-alt"></i> Login</a>
+                    <a href="/register" class="navbar-item"><i class="fas fa-user-plus"></i> Register</a>
+                {{end}}
+            </div>
+        </nav>
+    </header>
+<body>
+    <div class="container">
+        <main role="main">
+            <div class="post-header">
+                <h1 id="post-title" class="post-title">{{.Post.Title}}</h1>
+                <p>Posted by {{.Post.Author}} on {{.Post.CreatedAt.Format "January 2, 2006 at 3:04 PM"}}</p>
+            </div>
+
+            <div class="post-content">
+                {{.Post.Content}}
+            </div>
+
+            <div class="post-categories">
+                {{range .Categories}}
+                    <span class="post-category">{{.}}</span>
+                {{end}}
+            </div>
+
+            <div class="post-actions">
+                <div class="like-buttons">
+                    {{if .LoggedIn}}
+                        <button class="like-button" data-type="post" data-id="{{.Post.ID}}" data-action="like">Like (<span class="like-count">{{.Post.Likes}}</span>)</button>
+                        <button class="dislike-button" data-type="post" data-id="{{.Post.ID}}" data-action="dislike">Dislike (<span class="dislike-count">{{.Post.Dislikes}}</span>)</button>
+                    {{else}}
+                        <span>Likes: <span class="like-count">{{.Post.Likes}}</span></span>
+                        <span>Dislikes: <span class="dislike-count">{{.Post.Dislikes}}</span></span>
+                        <p>Please <a href="/login">login</a> to like or dislike this post.</p>
+                    {{end}}
+                </div>
+
+                {{if .IsAuthor}}
+                    <div class="author-actions">
+                        <button class="delete-post">Delete Post</button>
+                    </div>
+                {{end}}
+            </div>
+
+            <section class="comments-section">
+                <h2>Comments</h2>
+                {{range .Comments}}
+                    <div id="comment-{{.ID}}" class="comment">
+                        <div class="comment-header">
+                            <span>{{.Author}}</span>
+                            <span>{{.CreatedAt.Format "January 2, 2006 at 3:04 PM"}}</span>
+                        </div>
+                        <div class="comment-content">
+                            {{.Content}}
+                        </div>
+                        <div class="comment-actions">
+                            {{if $.LoggedIn}}
+                                <button class="like-button" data-type="comment" data-id="{{.ID}}" data-action="like">Like (<span class="like-count">{{.Likes}}</span>)</button>
+                                <button class="dislike-button" data-type="comment" data-id="{{.ID}}" data-action="dislike">Dislike (<span class="dislike-count">{{.Dislikes}}</span>)</button>
+                            {{else}}
+                                <span>Likes: <span class="like-count">{{.Likes}}</span></span>
+                                <span>Dislikes: <span class="dislike-count">{{.Dislikes}}</span></span>
+                            {{end}}
+                        </div>
+                    </div>
+                {{end}}
+
+                {{if .LoggedIn}}
+                <form action="/add-comment" method="post" class="comment-form">
+                    <input type="hidden" name="post_id" value="{{.Post.ID}}">
+                    <textarea name="content" required placeholder="Write your comment here"></textarea>
+                    <button type="submit">Submit Comment</button>
+                </form>
+                {{else}}
+                    <p>Please <a href="/login">login</a> to leave a comment.</p>
+                {{end}}
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Reboot Forums. All rights reserved.</p>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.addEventListener('click', function(event) {
+            if (event.target.matches('.like-button, .dislike-button')) {
+                const type = event.target.dataset.type;
+                const id = event.target.dataset.id;
+                const isLike = event.target.dataset.action === 'like';
+                likeContent(type, id, isLike);
+            }
+        });
+    });
+
+    function likeContent(type, id, isLike) {
+        const url = type === 'post' ? '/like-post' : '/like-comment';
+        const body = type === 'post' 
+            ? `post_id=${id}&is_like=${isLike}` 
+            : `comment_id=${id}&is_like=${isLike}`;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: body,
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Received data:', data);  // For debugging
+            updateLikeCounts(type, id, data.likes, data.dislikes);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function updateLikeCounts(type, id, likes, dislikes) {
+        let likeCount, dislikeCount;
+        if (type === 'post') {
+            likeCount = document.querySelector('.post-actions .like-count');
+            dislikeCount = document.querySelector('.post-actions .dislike-count');
+        } else {
+            const commentElement = document.getElementById(`comment-${id}`);
+            likeCount = commentElement.querySelector('.like-count');
+            dislikeCount = commentElement.querySelector('.dislike-count');
+        }
+        
+        if (likeCount) likeCount.textContent = likes;
+        if (dislikeCount) dislikeCount.textContent = dislikes;
+    }
+    </script>
+</body>
+</html>

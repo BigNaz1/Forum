@@ -1,26 +1,18 @@
-package GreatForums
+package RebootForums
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
 	"database/sql"
-	"encoding/base64"
-	"fmt"
-	"html/template"
+	"log"
 	"net/http"
 	"time"
-)
 
-type User struct {
-	ID       int
-	Username string
-	Email    string
-	Password string
-}
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+)
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		renderTemplate(w, "register.html", "")
+		RenderTemplate(w, "register.html", nil)
 		return
 	}
 
@@ -30,30 +22,73 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 
 		if username == "" || email == "" || password == "" {
-			renderTemplate(w, "register.html", "All fields are required")
+			RenderTemplate(w, "register.html", map[string]interface{}{"Message": "All fields are required"})
 			return
 		}
 
 		var exists bool
 		err := DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username = ? OR email = ?)", username, email).Scan(&exists)
 		if err != nil {
-			renderTemplate(w, "register.html", "Database error")
+			log.Printf("Database error during registration: %v", err)
+			RenderTemplate(w, "register.html", map[string]interface{}{"Message": "Database error"})
 			return
 		}
 		if exists {
-			renderTemplate(w, "register.html", "Username or email already exists")
+			RenderTemplate(w, "register.html", map[string]interface{}{"Message": "Username or email already exists"})
 			return
 		}
 
-		hashedPassword := hashPassword(password)
-
-		_, err = DB.Exec("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", username, email, hashedPassword)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
-			renderTemplate(w, "register.html", "Error creating user")
+			log.Printf("Error hashing password: %v", err)
+			RenderTemplate(w, "register.html", map[string]interface{}{"Message": "Error creating user"})
 			return
 		}
 
-		http.Redirect(w, r, "/login?registered=true", http.StatusSeeOther)
+		_, err = DB.Exec("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", username, email, string(hashedPassword))
+		if err != nil {
+			log.Printf("Error creating user: %v", err)
+			RenderTemplate(w, "register.html", map[string]interface{}{"Message": "Error creating user"})
+			return
+		}
+
+		// Retrieve the user ID of the newly registered user
+		var userID int
+		err = DB.QueryRow("SELECT id FROM users WHERE username = ?", username).Scan(&userID)
+		if err != nil {
+			log.Printf("Error retrieving user ID: %v", err)
+			RenderTemplate(w, "register.html", map[string]interface{}{"Message": "Error retrieving user"})
+			return
+		}
+
+		// Generate a session token
+		sessionToken, err := generateSessionToken()
+		if err != nil {
+			log.Printf("Error generating session token: %v", err)
+			RenderTemplate(w, "register.html", map[string]interface{}{"Message": "Error creating session"})
+			return
+		}
+
+		expiryTime := time.Now().Add(24 * time.Hour)
+		err = UpsertSession(&userID, sessionToken, expiryTime, false)
+		if err != nil {
+			log.Printf("Error creating session: %v", err)
+			RenderTemplate(w, "register.html", map[string]interface{}{"Message": "Error creating session"})
+			return
+		}
+
+		// Set the session cookie
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_token",
+			Value:    sessionToken,
+			Expires:  expiryTime,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   r.TLS != nil, // Set Secure flag if using HTTPS
+		})
+
+		// Redirect to the homepage or a different page as needed
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
 
@@ -63,7 +98,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("registered") == "true" {
 			message = "Registration successful. Please log in."
 		}
-		renderTemplate(w, "login.html", message)
+		RenderTemplate(w, "login.html", map[string]interface{}{"Message": message})
 		return
 	}
 
@@ -72,72 +107,104 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 
 		if username == "" || password == "" {
-			renderTemplate(w, "login.html", "Username and password are required")
+			RenderTemplate(w, "login.html", map[string]interface{}{"Message": "Username and password are required"})
 			return
 		}
 
 		var user User
-		err := DB.QueryRow("SELECT id, username, password FROM users WHERE username = ?", username).Scan(&user.ID, &user.Username, &user.Password)
+		var hashedPassword string
+		err := DB.QueryRow("SELECT id, username, password FROM users WHERE username = ?", username).Scan(&user.ID, &user.Username, &hashedPassword)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				renderTemplate(w, "login.html", "Invalid username or password")
+				RenderTemplate(w, "login.html", map[string]interface{}{"Message": "Invalid username or password"})
 			} else {
-				renderTemplate(w, "login.html", "Database error")
+				log.Printf("Database error during login: %v", err)
+				RenderTemplate(w, "login.html", map[string]interface{}{"Message": "An error occurred. Please try again later."})
 			}
 			return
 		}
 
-		if !checkPasswordHash(password, user.Password) {
-			renderTemplate(w, "login.html", "Invalid username or password")
+		if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)); err != nil {
+			RenderTemplate(w, "login.html", map[string]interface{}{"Message": "Invalid username or password"})
+			return
+		}
+
+		// Delete any existing sessions for this user
+		_, err = DB.Exec("DELETE FROM sessions WHERE user_id = ?", user.ID)
+		if err != nil {
+			log.Printf("Error deleting existing sessions: %v", err)
+			RenderTemplate(w, "login.html", map[string]interface{}{"Message": "An error occurred. Please try again later."})
 			return
 		}
 
 		sessionToken, err := generateSessionToken()
 		if err != nil {
-			renderTemplate(w, "login.html", "Error generating session token")
+			log.Printf("Error generating session token: %v", err)
+			RenderTemplate(w, "login.html", map[string]interface{}{"Message": "An error occurred. Please try again later."})
 			return
 		}
 
-		_, err = DB.Exec("INSERT INTO sessions (user_id, token, expiry) VALUES (?, ?, ?)",
-			user.ID, sessionToken, time.Now().Add(24*time.Hour))
+		expiryTime := time.Now().Add(24 * time.Hour)
+		err = UpsertSession(&user.ID, sessionToken, expiryTime, false)
 		if err != nil {
-			renderTemplate(w, "login.html", "Error creating session")
+			log.Printf("Error creating session: %v", err)
+			RenderTemplate(w, "login.html", map[string]interface{}{"Message": "An error occurred. Please try again later."})
 			return
 		}
 
 		http.SetCookie(w, &http.Cookie{
-			Name:    "session_token",
-			Value:   sessionToken,
-			Expires: time.Now().Add(24 * time.Hour),
+			Name:     "session_token",
+			Value:    sessionToken,
+			Expires:  expiryTime,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   r.TLS != nil, // Set Secure flag if using HTTPS
 		})
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
 
-func renderTemplate(w http.ResponseWriter, tmplName, message string) {
-	tmpl, err := template.ParseFiles("templates/" + tmplName)
+func generateSessionToken() (string, error) {
+	token := uuid.New().String()
+	return token, nil
+}
+
+func GetUserByUsername(username string) (*User, error) {
+	var user User
+	err := DB.QueryRow("SELECT id, username, email, password FROM users WHERE username = ?", username).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
 	if err != nil {
-		http.Error(w, "Failed to load template", http.StatusInternalServerError)
+		log.Printf("Error getting user by username: %v", err)
+		return nil, err
+	}
+	return &user, nil
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		// If there's no session cookie, just redirect to home page
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	tmpl.Execute(w, struct{ Message string }{Message: message})
-}
 
-func hashPassword(password string) string {
-	hash := sha256.Sum256([]byte(password))
-	return fmt.Sprintf("%x", hash)
-}
-
-func checkPasswordHash(password, hash string) bool {
-	return hashPassword(password) == hash
-}
-
-func generateSessionToken() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
+	// Delete the session from the database
+	err = DeleteSession(c.Value)
 	if err != nil {
-		return "", err
+		log.Printf("Error deleting session: %v", err)
+		// Continue with logout even if there's an error
 	}
-	return base64.URLEncoding.EncodeToString(b), nil
+
+	// Clear the cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Expires:  time.Now().Add(-1 * time.Hour), // Set expiry in the past
+		MaxAge:   -1,
+	})
+
+	// Redirect to home page
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
