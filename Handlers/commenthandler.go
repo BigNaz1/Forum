@@ -1,11 +1,12 @@
 package RebootForums
 
 import (
-//	"database/sql"
+	//	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -40,7 +41,7 @@ func getCommentsByPostID(postID int) ([]Comment, error) {
 
 func AddCommentHandler(w http.ResponseWriter, r *http.Request) {
 
-	content := r.FormValue("content")
+	content := strings.TrimSpace(r.FormValue("content"))
 
 	if len(content) == 0 || len(content) > MaxCommentLength {
 		http.Error(w, fmt.Sprintf("Comment must be between 1 and %d characters", MaxCommentLength), http.StatusBadRequest)

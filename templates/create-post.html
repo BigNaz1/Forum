@@ -133,5 +133,44 @@
             updateCharCount(contentInput, contentCount, 3000);
         });
         </script>
+        <style>
+            .form-group {
+                margin-bottom: 20px;
+            }
+        
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+        
+            .form-group input[type="text"],
+            .form-group textarea {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+                line-height: 1.5;
+            }
+        
+            .form-group input[type="text"] {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        
+            .form-group textarea {
+                min-height: 200px;
+                resize: vertical;
+            }
+        
+            .char-count {
+                display: block;
+                margin-top: 5px;
+                font-size: 14px;
+                color: #666;
+            }
+        </style>
 </body>
 </html>

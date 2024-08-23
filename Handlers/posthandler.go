@@ -6,10 +6,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
-
-
 
 func CreatePostFormHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -61,8 +60,8 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := r.FormValue("title")
-	content := r.FormValue("content")
+	title := strings.TrimSpace(r.FormValue("title"))
+	content := strings.TrimSpace(r.FormValue("content"))
 	categoryIDs := r.Form["categories"]
 
 	if title == "" || content == "" {
