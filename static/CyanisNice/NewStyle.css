@@ -368,7 +368,7 @@ footer {
 .auth-form input[type="text"],
 .auth-form input[type="email"],
 .auth-form input[type="password"] {
-    width: 100%;
+    width: 93%;
     padding: 10px 12px;
     border: 1px solid #e1e5eb;
     border-radius: 6px;
