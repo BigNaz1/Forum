@@ -226,6 +226,53 @@ Or use the provided Dockerfile to build and run the application in a container.
 
 5. Access the forum through a web browser at `http://localhost:8080` (or the appropriate port).
 
+## Docker Support
+
+Reboot Forums includes Docker support for easy deployment and consistent environments across different systems.
+
+### Dockerfile
+
+The project includes a Dockerfile that sets up the necessary environment for running the application. Key features of the Dockerfile include:
+
+- Base image: `golang:1.23-alpine`
+- Installation of required packages:
+  - `sqlite` and `sqlite-dev` for database support
+  - `gcc` and `musl-dev` for compilation of C dependencies
+  - `git` for potential version control operations
+  - `curl` for network utility
+  - `tzdata` for timezone data
+  - `ca-certificates` for secure connections
+
+### Building and Running with Docker
+
+To build and run the application using Docker:
+
+1. Build the Docker image:
+   ```
+   docker build -t reboot-forums:latest .
+   ```
+
+2. Run the Docker container:
+   ```
+   docker run -d --name reboot-forums -p 8080:8080 reboot-forums:latest
+   ```
+
+### Docker Compose (Optional)
+
+For easier management of the application, especially if additional services are added in the future, a `docker-compose.yml` file can be used. This file is not currently included in the project but can be easily added to orchestrate the application and any additional services.
+
+### Benefits of Docker Usage
+
+- Consistent environment across development, testing, and production
+- Easy deployment and scaling
+- Isolation of the application and its dependencies
+- Simplified setup process for new developers joining the project
+
+### Note on Database Persistence
+
+When using Docker, be aware that the SQLite database file is created inside the container. For data persistence between container restarts, consider using a Docker volume to store the database file.
+
+
 ## Features in Detail
 
 - **Post Creation**: Registered users can create posts and associate them with one or more categories.
