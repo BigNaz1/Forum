@@ -58,9 +58,11 @@
                 </div>
 
                 {{if .IsAuthor}}
-                    <div class="author-actions">
-                        <button class="delete-post">Delete Post</button>
-                    </div>
+                <div class="author-actions">
+                    <form id="deletePostForm" action="/delete-post/{{.Post.ID}}" method="POST">
+                        <button type="submit" class="delete-button">Delete Post</button>
+                    </form>
+                </div>
                 {{end}}
             </div>
 

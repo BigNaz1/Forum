@@ -3,7 +3,7 @@ package RebootForums
 import "time"
 
 const (
-    MaxTitleLength    = 150
+    MaxTitleLength    = 80
     MaxPostLength     = 3000
     MaxCommentLength  = 600
 )

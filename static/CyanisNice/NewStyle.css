@@ -75,6 +75,7 @@ header {
 }
 
 main {
+    order: -1; /* This moves the main content to the top */
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -532,11 +533,39 @@ body {
     color: var(--secondary-color);
 }
 
-.post-content {
+/* .post-content {
     font-size: 16px;
     margin: 20px;
     line-height: 1.6;
+} */
+
+.post-content {
+    font-size: 16px;
+    line-height: 1.6;
+    white-space: pre-wrap;       /* CSS3 */
+    white-space: -moz-pre-wrap;  /* Firefox */
+    white-space: -pre-wrap;      /* Opera <7 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* IE */
+    overflow-wrap: break-word;
+    max-width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
 }
+.comment-content {
+    font-size: 16px;
+    line-height: 1.6;
+    white-space: pre-wrap;       /* CSS3 */
+    white-space: -moz-pre-wrap;  /* Firefox */
+    white-space: -pre-wrap;      /* Opera <7 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* IE */
+    overflow-wrap: break-word;
+    max-width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
 
 .post-categories {
     margin: 0 20px 20px;
@@ -620,11 +649,11 @@ body {
     margin-bottom: 10px;
 }
 
-.comment-content {
+/* .comment-content {
     font-size: 16px;
     margin-bottom: 10px;
     line-height: 1.5;
-}
+} */
 
 .comment-actions {
     display: flex;
@@ -760,3 +789,44 @@ textarea {
     hyphens: auto;
 }
 
+.post-content, .comment-content {
+    font-size: 16px;
+    line-height: 1.6;
+    white-space: pre-wrap;       /* CSS3 */
+    white-space: -moz-pre-wrap;  /* Firefox */
+    white-space: -pre-wrap;      /* Opera <7 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* IE */
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+.post-content *, .comment-content * {
+    max-width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.post-content img, .comment-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 10px 0;
+}
+
+.post-content pre, .comment-content pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    overflow-x: auto;
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 4px;
+}

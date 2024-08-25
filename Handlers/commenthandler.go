@@ -39,15 +39,43 @@ func getCommentsByPostID(postID int) ([]Comment, error) {
 	return comments, nil
 }
 
+// func AddCommentHandler(w http.ResponseWriter, r *http.Request) {
+
+// 	content := strings.TrimSpace(r.FormValue("content"))
+
+// 	if len(content) == 0 || len(content) > MaxCommentLength {
+// 		http.Error(w, fmt.Sprintf("Comment must be between 1 and %d characters", MaxCommentLength), http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	if r.Method != http.MethodPost {
+// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+// 		return
+// 	}
+
+// 	user, err := GetUserFromSession(r)
+// 	if err != nil {
+// 		http.Error(w, "You must be logged in to comment", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	postID, err := strconv.Atoi(r.FormValue("post_id"))
+// 	if err != nil {
+// 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	err = addComment(user.ID, postID, content)
+// 	if err != nil {
+// 		log.Printf("Error adding comment: %v", err)
+// 		http.Error(w, "Error adding comment", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	http.Redirect(w, r, "/post/"+strconv.Itoa(postID), http.StatusSeeOther)
+// }
+
 func AddCommentHandler(w http.ResponseWriter, r *http.Request) {
-
-	content := strings.TrimSpace(r.FormValue("content"))
-
-	if len(content) == 0 || len(content) > MaxCommentLength {
-		http.Error(w, fmt.Sprintf("Comment must be between 1 and %d characters", MaxCommentLength), http.StatusBadRequest)
-		return
-	}
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -62,6 +90,19 @@ func AddCommentHandler(w http.ResponseWriter, r *http.Request) {
 	postID, err := strconv.Atoi(r.FormValue("post_id"))
 	if err != nil {
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	content := strings.TrimSpace(r.FormValue("content"))
+	contentLength := len(content)
+
+	if contentLength == 0 {
+		http.Error(w, "Comment cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	if contentLength > MaxCommentLength {
+		http.Error(w, fmt.Sprintf("Comment is too long. Maximum length is %d characters, your comment has %d characters.", MaxCommentLength, contentLength), http.StatusBadRequest)
 		return
 	}
 

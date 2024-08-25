@@ -29,8 +29,8 @@
             <form action="/create-post" method="post" class="create-post-form" id="createPostForm">
                 <div class="form-group">
                     <label for="title"><i class="fas fa-heading"></i> Title:</label>
-                    <input type="text" id="title" name="title" required maxlength="150" required placeholder="Enter your post title">
-                    <span id="titleCount" class="char-count">150 characters left</span>
+                    <input type="text" id="title" name="title" required maxlength="80" required placeholder="Enter your post title">
+                    <span id="titleCount" class="char-count">80 characters left</span>
                 </div>
 
                 <div class="form-group">
@@ -121,7 +121,7 @@
             var contentCount = document.getElementById('contentCount');
         
             titleInput.addEventListener('input', function() {
-                updateCharCount(titleInput, titleCount, 150);
+                updateCharCount(titleInput, titleCount, 80);
             });
         
             contentInput.addEventListener('input', function() {
@@ -129,7 +129,7 @@
             });
         
             // Initialize character counts
-            updateCharCount(titleInput, titleCount, 150);
+            updateCharCount(titleInput, titleCount, 80);
             updateCharCount(contentInput, contentCount, 3000);
         });
         </script>
