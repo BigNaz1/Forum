@@ -1,5 +1,15 @@
 FROM golang:1.23-alpine
 
+RUN apk add --no-cache \
+    sqlite \
+    sqlite-dev \
+    gcc \
+    musl-dev \
+    git \
+    curl \
+    tzdata \
+    ca-certificates
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
