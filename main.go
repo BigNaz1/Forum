@@ -52,13 +52,13 @@ func main() {
 
 	// Set up routes
 	mux.HandleFunc("/", RebootForums.HomeHandler)
-	mux.HandleFunc("/register", makeHandler(RebootForums.RegisterHandler))
-	mux.HandleFunc("/login", makeHandler(RebootForums.LoginHandler))
+	mux.HandleFunc("POST /register", makeHandler(RebootForums.RegisterHandler))
+	mux.HandleFunc("POST /login", makeHandler(RebootForums.LoginHandler))
 	mux.HandleFunc("/logout", makeHandler(RebootForums.LogoutHandler))
 	// Post-related routes
 	mux.HandleFunc("/create-post", makeHandler(RebootForums.CreatePostFormHandler))
 	mux.HandleFunc("/post/", makeHandler(RebootForums.ViewPostHandler))
-	mux.HandleFunc("/delete-post/", makeHandler(RebootForums.DeletePostHandler))
+	mux.HandleFunc("DELETE /delete-post/", makeHandler(RebootForums.DeletePostHandler))
 	mux.HandleFunc("/like-post", makeHandler(RebootForums.LikePostHandler))
 	mux.HandleFunc("/like-comment", makeHandler(RebootForums.LikeCommentHandler))
 	mux.HandleFunc("/add-comment", makeHandler(RebootForums.AddCommentHandler))

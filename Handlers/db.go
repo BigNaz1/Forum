@@ -3,7 +3,8 @@ package RebootForums
 import (
 	"database/sql"
 	"log"
-_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var DB *sql.DB
@@ -154,75 +155,75 @@ func AddUpdatedAtColumn() error {
 
 // GetLikeCounts returns the number of likes and dislikes for a post or comment
 func GetLikeCounts(targetID int, isPost bool) (likes int, dislikes int, err error) {
-    var query string
-    if isPost {
-        query = `
+	var query string
+	if isPost {
+		query = `
             SELECT 
                 COALESCE(SUM(CASE WHEN is_like = 1 THEN 1 ELSE 0 END), 0) as likes,
                 COALESCE(SUM(CASE WHEN is_like = 0 THEN 1 ELSE 0 END), 0) as dislikes
             FROM likes
             WHERE post_id = ?
         `
-    } else {
-        query = `
+	} else {
+		query = `
             SELECT 
                 COALESCE(SUM(CASE WHEN is_like = 1 THEN 1 ELSE 0 END), 0) as likes,
                 COALESCE(SUM(CASE WHEN is_like = 0 THEN 1 ELSE 0 END), 0) as dislikes
             FROM likes
             WHERE comment_id = ?
         `
-    }
-    
-    err = DB.QueryRow(query, targetID).Scan(&likes, &dislikes)
-    return
+	}
+
+	err = DB.QueryRow(query, targetID).Scan(&likes, &dislikes)
+	return
 }
 
 func UpsertLike(userID, targetID int, isLike bool, isPost bool) error {
-    tx, err := DB.Begin()
-    if err != nil {
-        return err
-    }
-    defer tx.Rollback()
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 
-    var existingLike sql.NullBool
-    var selectQuery, insertQuery, updateQuery, deleteQuery string
+	var existingLike sql.NullBool
+	var selectQuery, insertQuery, updateQuery, deleteQuery string
 
-    if isPost {
-        selectQuery = "SELECT is_like FROM likes WHERE user_id = ? AND post_id = ? AND comment_id IS NULL"
-        insertQuery = "INSERT INTO likes (user_id, post_id, comment_id, is_like) VALUES (?, ?, NULL, ?)"
-        updateQuery = "UPDATE likes SET is_like = ? WHERE user_id = ? AND post_id = ? AND comment_id IS NULL"
-        deleteQuery = "DELETE FROM likes WHERE user_id = ? AND post_id = ? AND comment_id IS NULL"
-    } else {
-        selectQuery = "SELECT is_like FROM likes WHERE user_id = ? AND comment_id = ? AND post_id IS NULL"
-        insertQuery = "INSERT INTO likes (user_id, post_id, comment_id, is_like) VALUES (?, NULL, ?, ?)"
-        updateQuery = "UPDATE likes SET is_like = ? WHERE user_id = ? AND comment_id = ? AND post_id IS NULL"
-        deleteQuery = "DELETE FROM likes WHERE user_id = ? AND comment_id = ? AND post_id IS NULL"
-    }
+	if isPost {
+		selectQuery = "SELECT is_like FROM likes WHERE user_id = ? AND post_id = ? AND comment_id IS NULL"
+		insertQuery = "INSERT INTO likes (user_id, post_id, comment_id, is_like) VALUES (?, ?, NULL, ?)"
+		updateQuery = "UPDATE likes SET is_like = ? WHERE user_id = ? AND post_id = ? AND comment_id IS NULL"
+		deleteQuery = "DELETE FROM likes WHERE user_id = ? AND post_id = ? AND comment_id IS NULL"
+	} else {
+		selectQuery = "SELECT is_like FROM likes WHERE user_id = ? AND comment_id = ? AND post_id IS NULL"
+		insertQuery = "INSERT INTO likes (user_id, post_id, comment_id, is_like) VALUES (?, NULL, ?, ?)"
+		updateQuery = "UPDATE likes SET is_like = ? WHERE user_id = ? AND comment_id = ? AND post_id IS NULL"
+		deleteQuery = "DELETE FROM likes WHERE user_id = ? AND comment_id = ? AND post_id IS NULL"
+	}
 
-    err = tx.QueryRow(selectQuery, userID, targetID).Scan(&existingLike)
+	err = tx.QueryRow(selectQuery, userID, targetID).Scan(&existingLike)
 
-    if err != nil && err != sql.ErrNoRows {
-        return err
-    }
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
 
-    if err == sql.ErrNoRows {
-        // No existing like, insert new one
-        _, err = tx.Exec(insertQuery, userID, targetID, isLike)
-    } else if existingLike.Valid {
-        if existingLike.Bool == isLike {
-            // User is toggling off their like/dislike
-            _, err = tx.Exec(deleteQuery, userID, targetID)
-        } else {
-            // User is changing from like to dislike or vice versa
-            _, err = tx.Exec(updateQuery, isLike, userID, targetID)
-        }
-    }
+	if err == sql.ErrNoRows {
+		// No existing like, insert new one
+		_, err = tx.Exec(insertQuery, userID, targetID, isLike)
+	} else if existingLike.Valid {
+		if existingLike.Bool == isLike {
+			// User is toggling off their like/dislike
+			_, err = tx.Exec(deleteQuery, userID, targetID)
+		} else {
+			// User is changing from like to dislike or vice versa
+			_, err = tx.Exec(updateQuery, isLike, userID, targetID)
+		}
+	}
 
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
-    return tx.Commit()
+	return tx.Commit()
 }
 
 func AddCreatedAtToLikesTable() error {
@@ -241,7 +242,7 @@ func AddCreatedAtToLikesTable() error {
 }
 
 func GetPostsByCategory(categoryID int) ([]Post, error) {
-    query := `
+	query := `
         SELECT DISTINCT p.id, p.title, p.content, u.username, p.created_at
         FROM posts p
         JOIN users u ON p.user_id = u.id
@@ -249,22 +250,22 @@ func GetPostsByCategory(categoryID int) ([]Post, error) {
         WHERE pc.category_id = ?
         ORDER BY p.created_at DESC
     `
-    return fetchPosts(query, categoryID)
+	return fetchPosts(query, categoryID)
 }
 
 func GetPostsByUser(userID int) ([]Post, error) {
-    query := `
+	query := `
         SELECT p.id, p.title, p.content, u.username, p.created_at
         FROM posts p
         JOIN users u ON p.user_id = u.id
         WHERE p.user_id = ?
         ORDER BY p.created_at DESC
     `
-    return fetchPosts(query, userID)
+	return fetchPosts(query, userID)
 }
 
 func GetLikedPostsByUser(userID int) ([]Post, error) {
-    query := `
+	query := `
         SELECT p.id, p.title, p.content, u.username, p.created_at
         FROM posts p
         JOIN users u ON p.user_id = u.id
@@ -272,24 +273,24 @@ func GetLikedPostsByUser(userID int) ([]Post, error) {
         WHERE l.user_id = ? AND l.is_like = 1
         ORDER BY p.created_at DESC
     `
-    return fetchPosts(query, userID)
+	return fetchPosts(query, userID)
 }
 
 func fetchPosts(query string, args ...interface{}) ([]Post, error) {
-    rows, err := DB.Query(query, args...)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+	rows, err := DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    var posts []Post
-    for rows.Next() {
-        var p Post
-        err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.Author, &p.CreatedAt)
-        if err != nil {
-            return nil, err
-        }
-        posts = append(posts, p)
-    }
-    return posts, nil
+	var posts []Post
+	for rows.Next() {
+		var p Post
+		err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.Author, &p.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, p)
+	}
+	return posts, nil
 }
