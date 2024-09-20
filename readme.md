@@ -1,26 +1,63 @@
 # Reboot Forums
 
-## Description
+![Go Version](https://img.shields.io/badge/Go-1.23-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-Reboot Forums is a web-based forum application that facilitates communication between users. It allows registered users to create posts, comment on posts, and interact through likes and dislikes. The forum also features category association for posts and filtering capabilities.
+Reboot Forums is a full-stack web application built with Go, providing a platform for user discussions. It features user authentication, post creation and management, commenting system, and a like/dislike functionality.
 
-## Key Features
+## Table of Contents
+
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Authentication](#authentication)
+- [Database](#database)
+- [Post Handling System](#post-handling-system)
+- [Comment Handling System](#comment-handling-system)
+- [Docker Support](#docker-support)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
+- [Developers](#developers)
+- [Roadmap](#roadmap)
+- [Troubleshooting](#troubleshooting)
+
+## Features
 
 - User registration and authentication
-- Creating and viewing posts
+- Creating, viewing, and managing posts
 - Commenting on posts
 - Liking and disliking posts and comments
 - Associating categories with posts
 - Filtering posts by categories, user-created posts, and liked posts
 - Guest browsing (limited to viewing posts and comments)
+- User profiles showcasing posts and activity
 
 ## Technologies Used
 
 - Go version 1.23
 - SQLite database
-- HTML
-- CSS
+- HTML/CSS
 - Minimal JavaScript
+- Docker
+
+## Installation
+
+1. Ensure Go 1.23 is installed on your system.
+2. Clone the repository:
+      https://github.com/NazJaberi/Forum
+3. Navigate to the project directory:
+      cd reboot-forums
+4. Install dependencies:
+      go mod tidy
+
+## Usage
+
+1. Run the application:
+      go run main.go
+2. Access the forum through a web browser at `http://localhost:8080`
 
 ## Project Structure
 
@@ -37,30 +74,30 @@ The project follows a standard Go web application structure. Key components incl
 Authentication in Reboot Forums is handled using session-based cookies with UUID tokens. The process includes:
 
 1. **Registration**:
-   - Users provide a username, email, and password.
-   - The system checks for existing usernames or emails to prevent duplicates.
-   - Passwords are hashed using bcrypt before storage in the database.
-   - Upon successful registration, a session is created and a cookie is set.
+- Users provide a username, email, and password.
+- The system checks for existing usernames or emails to prevent duplicates.
+- Passwords are hashed using bcrypt before storage in the database.
+- Upon successful registration, a session is created and a cookie is set.
 
 2. **Login**:
-   - Users enter their username and password.
-   - The system verifies the credentials against the database.
-   - If valid, any existing sessions for the user are deleted.
-   - A new session is created with a UUID token, stored in the database and set as a cookie.
+- Users enter their username and password.
+- The system verifies the credentials against the database.
+- If valid, any existing sessions for the user are deleted.
+- A new session is created with a UUID token, stored in the database and set as a cookie.
 
 3. **Session Management**:
-   - Sessions have a 24-hour expiration period.
-   - Session tokens are generated using UUID for security.
-   - Sessions are stored in the database, linking the token to the user ID.
+- Sessions have a 24-hour expiration period.
+- Session tokens are generated using UUID for security.
+- Sessions are stored in the database, linking the token to the user ID.
 
 4. **Logout**:
-   - The session is deleted from the database.
-   - The session cookie is cleared from the client.
+- The session is deleted from the database.
+- The session cookie is cleared from the client.
 
 5. **Security Measures**:
-   - Passwords are hashed using bcrypt for secure storage.
-   - Session cookies are HTTP-only and secure (when using HTTPS) to prevent XSS attacks.
-   - The system uses prepared statements to prevent SQL injection.
+- Passwords are hashed using bcrypt for secure storage.
+- Session cookies are HTTP-only and secure (when using HTTPS) to prevent XSS attacks.
+- The system uses prepared statements to prevent SQL injection.
 
 This authentication system ensures secure user registration, login, and session management, protecting user data and preventing unauthorized access.
 
@@ -106,38 +143,38 @@ The Reboot Forums post handling system manages the creation, viewing, editing, a
 
 - **Handler**: `CreatePostFormHandler`
 - **Features**:
-  - Displays a form for creating new posts (GET request)
-  - Processes the form submission to create a new post (POST request)
-  - Validates user authentication before allowing post creation
-  - Supports associating multiple categories with a post
-  - Uses database transactions to ensure data integrity when creating posts
+- Displays a form for creating new posts (GET request)
+- Processes the form submission to create a new post (POST request)
+- Validates user authentication before allowing post creation
+- Supports associating multiple categories with a post
+- Uses database transactions to ensure data integrity when creating posts
 
 ### Viewing Posts
 
 - **Handler**: `ViewPostHandler`
 - **Features**:
-  - Retrieves and displays a single post along with its details
-  - Fetches associated categories and comments for the post
-  - Handles cases where the post doesn't exist
-  - Determines if the current user is the author of the post
+- Retrieves and displays a single post along with its details
+- Fetches associated categories and comments for the post
+- Handles cases where the post doesn't exist
+- Determines if the current user is the author of the post
 
 ### Liking Posts and Comments
 
 - **Handlers**: `LikePostHandler`, `LikeCommentHandler`
 - **Features**:
-  - Allows authenticated users to like or dislike posts and comments
-  - Uses a flexible system that can toggle between like and dislike
-  - Updates like/dislike counts in real-time
-  - Returns updated counts as JSON for AJAX requests
+- Allows authenticated users to like or dislike posts and comments
+- Uses a flexible system that can toggle between like and dislike
+- Updates like/dislike counts in real-time
+- Returns updated counts as JSON for AJAX requests
 
 ### Deleting Posts
 
 - **Handler**: `DeletePostHandler`
 - **Features**:
-  - Allows post authors to delete their posts
-  - Validates user authorization before allowing deletion
-  - Implements cascading deletion for associated data (categories, likes, comments)
-  - Uses database transactions to ensure all related data is deleted consistently
+- Allows post authors to delete their posts
+- Validates user authorization before allowing deletion
+- Implements cascading deletion for associated data (categories, likes, comments)
+- Uses database transactions to ensure all related data is deleted consistently
 
 ### Helper Functions
 
@@ -169,28 +206,28 @@ The Reboot Forums comment handling system manages the creation and retrieval of 
 
 - **Function**: `getCommentsByPostID`
 - **Features**:
-  - Fetches all comments for a specific post
-  - Retrieves comment details including ID, content, author, and creation time
-  - Orders comments chronologically (oldest first)
-  - Integrates with the like system to fetch like/dislike counts for each comment
-  - Uses JOIN operation for efficient data retrieval
+- Fetches all comments for a specific post
+- Retrieves comment details including ID, content, author, and creation time
+- Orders comments chronologically (oldest first)
+- Integrates with the like system to fetch like/dislike counts for each comment
+- Uses JOIN operation for efficient data retrieval
 
 ### Adding Comments
 
 - **Handler**: `AddCommentHandler`
 - **Features**:
-  - Allows authenticated users to add comments to posts
-  - Validates user authentication before allowing comment submission
-  - Checks for valid post ID and non-empty comment content
-  - Redirects user back to the post page after successful comment addition
+- Allows authenticated users to add comments to posts
+- Validates user authentication before allowing comment submission
+- Checks for valid post ID and non-empty comment content
+- Redirects user back to the post page after successful comment addition
 
 ### Comment Creation
 
 - **Function**: `addComment`
 - **Features**:
-  - Inserts a new comment into the database
-  - Associates the comment with the user and the post
-  - Records the creation timestamp
+- Inserts a new comment into the database
+- Associates the comment with the user and the post
+- Records the creation timestamp
 
 ### Utility Functions
 
@@ -215,17 +252,6 @@ The Reboot Forums comment handling system manages the creation and retrieval of 
 
 This comment handling system provides a robust way to manage and display comments on forum posts. It ensures that only authenticated users can add comments, maintains data integrity, and integrates seamlessly with the post and like systems of the forum.
 
-## Setup and Usage
-
-1. Ensure Go 1.23 is installed on your system.
-2. Clone the repository.
-3. Navigate to the project directory.
-4. Run the application:
-
-Or use the provided Dockerfile to build and run the application in a container.
-
-5. Access the forum through a web browser at `http://localhost:8080` (or the appropriate port).
-
 ## Docker Support
 
 Reboot Forums includes Docker support for easy deployment and consistent environments across different systems.
@@ -236,37 +262,21 @@ The project includes a Dockerfile that sets up the necessary environment for run
 
 - Base image: `golang:1.23-alpine`
 - Installation of required packages:
-  - `sqlite` and `sqlite-dev` for database support
-  - `gcc` and `musl-dev` for compilation of C dependencies
-  - `git` for potential version control operations
-  - `curl` for network utility
-  - `tzdata` for timezone data
-  - `ca-certificates` for secure connections
+- `sqlite` and `sqlite-dev` for database support
+- `gcc` and `musl-dev` for compilation of C dependencies
+- `git` for potential version control operations
+- `curl` for network utility
+- `tzdata` for timezone data
+- `ca-certificates` for secure connections
 
 ### Building and Running with Docker
 
 To build and run the application using Docker:
 
 1. Build the Docker image:
-   ```
-   docker build -t reboot-forums:latest .
-   ```
-
+      docker build -t reboot-forums:latest .
 2. Run the Docker container:
-   ```
-   docker run -d --name reboot-forums -p 8080:8080 reboot-forums:latest
-   ```
-
-### Docker Compose (Optional)
-
-For easier management of the application, especially if additional services are added in the future, a `docker-compose.yml` file can be used. This file is not currently included in the project but can be easily added to orchestrate the application and any additional services.
-
-### Benefits of Docker Usage
-
-- Consistent environment across development, testing, and production
-- Easy deployment and scaling
-- Isolation of the application and its dependencies
-- Simplified setup process for new developers joining the project
+      docker run -d --name reboot-forums -p 8080:8080 reboot-forums:latest
 
 ### Note on Database Persistence
 
