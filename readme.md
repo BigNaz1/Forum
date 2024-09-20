@@ -17,12 +17,9 @@ Reboot Forums is a full-stack web application built with Go, providing a platfor
 - [Post Handling System](#post-handling-system)
 - [Comment Handling System](#comment-handling-system)
 - [Docker Support](#docker-support)
-- [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
-- [Developers](#developers)
-- [Roadmap](#roadmap)
-- [Troubleshooting](#troubleshooting)
+
 
 ## Features
 
